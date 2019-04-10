@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <head>
+            <link type="text/css" rel="stylesheet" href="/index.css">
+    </head>
+    <script type="x-shader/x-vertex" id="vertexMetaballs">
+        attribute vec2 position;
+      void main() {
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+    </script>
+    <script type="x-shader/x-fragment" id="fragmentMetaballs">
+        precision highp float;
+      const int NUM_METABALLS = 15;
+    
+      uniform vec3 metaballs[15];
+      uniform vec2 uResolution;
+      uniform sampler2D uColorSampler;
+      uniform sampler2D uNoiseSampler;
+      uniform float uTime;
+      
+        void main(){
+          float x = gl_FragCoord.x;
+        float y = gl_FragCoord.y;
+        float v = 0.0;
+        float radius = 2.0;
+        float speed = 1.5;
+        for (int i = 0; i < NUM_METABALLS; i++) {
+            vec3 mb = metaballs[i];
+                float dx = mb.x - x;
+                float dy = mb.y - y;
+    
+          float r = mb.z;
+          v += r*r/(dx*dx + dy*dy);
+            }
+    
+        vec4 color;
+        if (v > 1.0) {
+            vec4 textureColor = texture2D(uColorSampler, vec2(gl_FragCoord.x / uResolution.x, gl_FragCoord.y / uResolution.y) );
+          vec4 noiseColor = (texture2D(uNoiseSampler, gl_FragCoord.xy / 100.0 )) / 1.;
+          float l = length(noiseColor);
+          if(l > 1.05){
+              vec4 mixedColor = textureColor + (noiseColor * 0.001);
+                    color = mixedColor;
+                }
+          else{
+              //discard;
+            color = textureColor * 0.85;
+                }
+            }
+        else {
+            discard;
+            }
+        gl_FragColor = vec4(color.rgb, 0.8);
+        }
+    </script>
+    <div class="wrapper grad">
+      <div class="dots"></div>
+      <canvas id="metaball-canvas" class="metaball-canvas"></canvas>
+    </div>
+    <script src="/index.js"></script>
+    <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/t-183/Metaballs.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js"></script>
+</body>
+</html>
